@@ -10,9 +10,8 @@ import numpy as np
 import pytz
 import skimage.io
 import torch
-from torch.autograd import Variable
 import torch.nn.functional as F
-import tqdm
+# import tqdm
 
 import torchfcn
 
@@ -91,6 +90,7 @@ class Trainer(object):
         self.best_mean_iu = 0
 
     def validate(self):
+        print("validate()")
         training = self.model.training
         self.model.eval()
 
@@ -99,13 +99,15 @@ class Trainer(object):
         val_loss = 0
         visualizations = []
         label_trues, label_preds = [], []
-        for batch_idx, (data, target) in tqdm.tqdm(
-                enumerate(self.val_loader), total=len(self.val_loader),
-                desc='Valid iteration=%d' % self.iteration, ncols=80,
-                leave=False):
+        # for batch_idx, (data, target) in tqdm.tqdm(
+        #         enumerate(self.val_loader), total=len(self.val_loader),
+        #         desc='Valid iteration=%d' % self.iteration, ncols=80,
+        #         leave=False):
+        for batch_idx, (data, target) in enumerate(self.val_loader):
+            print("line 107")
             if self.cuda:
                 data, target = data.cuda(), target.cuda()
-            data, target = Variable(data), Variable(target)
+
             with torch.no_grad():
                 score = self.model(data)
 
@@ -119,8 +121,12 @@ class Trainer(object):
             imgs = data.data.cpu()
             lbl_pred = score.data.max(1)[1].cpu().numpy()[:, :, :]
             lbl_true = target.data.cpu()
+            print("lbl_pred: %s" % (str(lbl_pred.shape)))
+            print("lbl_true: %s" % str(lbl_true.shape))
             for img, lt, lp in zip(imgs, lbl_true, lbl_pred):
                 img, lt = self.val_loader.dataset.untransform(img, lt)
+                print("img: %s" % str(img.shape))
+                print("lt: %s" % str(lt.shape))
                 label_trues.append(lt)
                 label_preds.append(lp)
                 if len(visualizations) < 9:
@@ -170,15 +176,16 @@ class Trainer(object):
         self.model.train()
 
         n_class = len(self.train_loader.dataset.class_names)
-
-        for batch_idx, (data, target) in tqdm.tqdm(
-                enumerate(self.train_loader), total=len(self.train_loader),
-                desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
+        print("line 178")
+        # for batch_idx, (data, target) in tqdm.tqdm(
+        #         enumerate(self.train_loader), total=len(self.train_loader),
+        #         desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
+        for batch_idx, (data, target) in enumerate(self.train_loader):
             iteration = batch_idx + self.epoch * len(self.train_loader)
             if self.iteration != 0 and (iteration - 1) != self.iteration:
                 continue  # for resuming
             self.iteration = iteration
-
+            print("line 187")
             if self.iteration % self.interval_validate == 0:
                 self.validate()
 
@@ -186,9 +193,9 @@ class Trainer(object):
 
             if self.cuda:
                 data, target = data.cuda(), target.cuda()
-            data, target = Variable(data), Variable(target)
             self.optim.zero_grad()
             score = self.model(data)
+            print(score.shape)
 
             loss = cross_entropy2d(score, target,
                                    size_average=self.size_average)
@@ -221,9 +228,11 @@ class Trainer(object):
                 break
 
     def train(self):
+        # 100000 / 4000 = 25
         max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader)))
-        for epoch in tqdm.trange(self.epoch, max_epoch,
-                                 desc='Train', ncols=80):
+        # for epoch in tqdm.trange(self.epoch, max_epoch,
+        #                          desc='Train', ncols=80):
+        for epoch in range(self.epoch, max_epoch):
             self.epoch = epoch
             self.train_epoch()
             if self.iteration >= self.max_iter:

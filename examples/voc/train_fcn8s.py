@@ -12,6 +12,9 @@ import torchfcn
 
 from train_fcn32s import get_parameters
 from train_fcn32s import git_hash
+import sys
+sys.path.append("../../torchfcn/datasets/")
+from DeepFashion import DeepFashionDataset
 
 
 here = osp.dirname(osp.abspath(__file__))
@@ -22,14 +25,14 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument('-g', '--gpu', type=int, required=True, help='gpu id')
-    parser.add_argument('--resume', help='checkpoint path')
+    parser.add_argument('--resume', default=None, help='checkpoint path')
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
     parser.add_argument(
         '--max-iteration', type=int, default=100000, help='max iteration'
     )
     parser.add_argument(
-        '--lr', type=float, default=1.0e-14, help='learning rate',
+        '--lr', type=float, default=0.001, help='learning rate',
     )
     parser.add_argument(
         '--weight-decay', type=float, default=0.0005, help='weight decay',
@@ -39,7 +42,7 @@ def main():
     )
     parser.add_argument(
         '--pretrained-model',
-        default=torchfcn.models.FCN16s.download(),
+        default=None,
         help='pretrained model of FCN16s',
     )
     args = parser.parse_args()
@@ -63,19 +66,18 @@ def main():
 
     # 1. dataset
 
-    root = osp.expanduser('~/data/datasets')
+    root = osp.expanduser('~/data/datasets/dp')
     kwargs = {'num_workers': 4, 'pin_memory': True} if cuda else {}
     train_loader = torch.utils.data.DataLoader(
-        torchfcn.datasets.SBDClassSeg(root, split='train', transform=True),
-        batch_size=1, shuffle=True, **kwargs)
+        DeepFashionDataset(root, split='train', transform=True),
+        batch_size=4, shuffle=True, **kwargs)
     val_loader = torch.utils.data.DataLoader(
-        torchfcn.datasets.VOC2011ClassSeg(
-            root, split='seg11valid', transform=True),
-        batch_size=1, shuffle=False, **kwargs)
+        DeepFashionDataset(root, split='val', transform=True),
+        batch_size=4, shuffle=False, **kwargs)
 
     # 2. model
 
-    model = torchfcn.models.FCN8s(n_class=21)
+    model = torchfcn.models.FCN8s(n_class=20)  # 21改为20
     start_epoch = 0
     start_iteration = 0
     if args.resume:
@@ -85,12 +87,12 @@ def main():
         start_iteration = checkpoint['iteration']
     else:
         fcn16s = torchfcn.models.FCN16s()
-        state_dict = torch.load(args.pretrained_model)
-        try:
-            fcn16s.load_state_dict(state_dict)
-        except RuntimeError:
-            fcn16s.load_state_dict(state_dict['model_state_dict'])
-        model.copy_params_from_fcn16s(fcn16s)
+#         state_dict = torch.load(args.pretrained_model)
+#         try:
+#             fcn16s.load_state_dict(state_dict)
+#         except RuntimeError:
+#             fcn16s.load_state_dict(state_dict['model_state_dict'])
+#         model.copy_params_from_fcn16s(fcn16s)
     if cuda:
         model = model.cuda()
 

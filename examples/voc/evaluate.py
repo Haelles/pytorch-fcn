@@ -8,7 +8,6 @@ import fcn
 import numpy as np
 import skimage.io
 import torch
-from torch.autograd import Variable
 import torchfcn
 import tqdm
 
@@ -61,7 +60,6 @@ def main():
                                                ncols=80, leave=False):
         if torch.cuda.is_available():
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
         score = model(data)
 
         imgs = data.data.cpu()

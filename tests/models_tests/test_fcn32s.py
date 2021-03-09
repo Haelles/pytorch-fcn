@@ -14,7 +14,6 @@ def test_get_upsampling_weight():
     x = src.transpose(2, 0, 1)
     x = x[np.newaxis, :, :, :]
     x = torch.from_numpy(x).float()
-    x = torch.autograd.Variable(x)
 
     in_channels = 3
     out_channels = 3
