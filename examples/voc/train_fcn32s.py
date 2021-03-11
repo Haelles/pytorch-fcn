@@ -9,7 +9,8 @@ import subprocess
 
 import torch
 import yaml
-
+import sys
+sys.path.append("../../torchfcn/")
 import torchfcn
 
 

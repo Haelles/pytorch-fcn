@@ -94,7 +94,7 @@ class Trainer(object):
         training = self.model.training
         self.model.eval()
 
-        n_class = len(self.val_loader.dataset.class_names)
+        n_class = 20
 
         val_loss = 0
         visualizations = []
@@ -173,15 +173,16 @@ class Trainer(object):
             self.model.train()
 
     def train_epoch(self):
-        self.model.train()
+        self.model.train()  # model.training设置为True
 
-        n_class = len(self.train_loader.dataset.class_names)
+        n_class = 20
         print("line 178")
         # for batch_idx, (data, target) in tqdm.tqdm(
         #         enumerate(self.train_loader), total=len(self.train_loader),
         #         desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
         for batch_idx, (data, target) in enumerate(self.train_loader):
-            iteration = batch_idx + self.epoch * len(self.train_loader)
+            # self.epoch从0开始
+            iteration = batch_idx + self.epoch * len(self.train_loader)  # 返回的是len(dataset)/batch_size
             if self.iteration != 0 and (iteration - 1) != self.iteration:
                 continue  # for resuming
             self.iteration = iteration
@@ -228,7 +229,7 @@ class Trainer(object):
                 break
 
     def train(self):
-        # 100000 / 4000 = 25
+        # 10000 / (4000 / 8) = 20
         max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader)))
         # for epoch in tqdm.trange(self.epoch, max_epoch,
         #                          desc='Train', ncols=80):

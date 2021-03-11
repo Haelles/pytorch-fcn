@@ -8,12 +8,12 @@ import os.path as osp
 import torch
 import yaml
 
-import torchfcn
-
 from train_fcn32s import get_parameters
 from train_fcn32s import git_hash
 import sys
 sys.path.append("../../torchfcn/datasets/")
+sys.path.append("../../torchfcn/")
+import torchfcn
 from DeepFashion import DeepFashionDataset
 
 
@@ -24,7 +24,7 @@ def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument('-g', '--gpu', type=int, required=True, help='gpu id')
+    parser.add_argument('-g', '--gpu', default='0', type=int, required=True, help='gpu id')
     parser.add_argument('--resume', default=None, help='checkpoint path')
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
@@ -70,10 +70,10 @@ def main():
     kwargs = {'num_workers': 4, 'pin_memory': True} if cuda else {}
     train_loader = torch.utils.data.DataLoader(
         DeepFashionDataset(root, split='train', transform=True),
-        batch_size=4, shuffle=True, **kwargs)
+        batch_size=8, shuffle=True, **kwargs)
     val_loader = torch.utils.data.DataLoader(
         DeepFashionDataset(root, split='val', transform=True),
-        batch_size=4, shuffle=False, **kwargs)
+        batch_size=8, shuffle=False, **kwargs)
 
     # 2. model
 
@@ -85,8 +85,8 @@ def main():
         model.load_state_dict(checkpoint['model_state_dict'])
         start_epoch = checkpoint['epoch']
         start_iteration = checkpoint['iteration']
-    else:
-        fcn16s = torchfcn.models.FCN16s()
+#    else:
+#        fcn16s = torchfcn.models.FCN16s()
 #         state_dict = torch.load(args.pretrained_model)
 #         try:
 #             fcn16s.load_state_dict(state_dict)
