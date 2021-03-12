@@ -39,9 +39,9 @@ class DeepFashionDataset(data.Dataset):
     def __init__(self, root, split='train', transform=False):
         self.root = root
         self.split = split
-        self._transform = transform
+        self._transform = transform  # train, val都为True
 
-        lines = open('../../torchfcn/datasets/dp_train_val.txt').readlines()
+        lines = open('/home/featurize/data/pytorch-fcn/torchfcn/datasets/dp_train_val.txt').readlines()
         self.files = collections.defaultdict(list)
         for l in lines:
             sub_path, tag = l.split()[0], l.split()[-1]
@@ -63,9 +63,9 @@ class DeepFashionDataset(data.Dataset):
         img = np.array(img, dtype=np.uint8)
         # load label
         lbl_file = data_file['lbl']
-        lbl = PIL.Image.open(lbl_file)
-        lbl = np.array(lbl, dtype=np.int32)
-        lbl[lbl == 255] = -1
+        lbl = PIL.Image.open(lbl_file)  # 'JpegImageFile' object
+        lbl = np.array(lbl, dtype=np.int8)  # 原为32？
+        # lbl[lbl == 255] = -1
         if self._transform:
             return self.transform(img, lbl)
         else:
@@ -88,4 +88,5 @@ class DeepFashionDataset(data.Dataset):
         img = img[:, :, ::-1]
         lbl = lbl.numpy()
         return img, lbl
+
 

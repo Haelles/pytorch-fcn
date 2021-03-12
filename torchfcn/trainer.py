@@ -123,10 +123,16 @@ class Trainer(object):
             lbl_true = target.data.cpu()
             print("lbl_pred: %s" % (str(lbl_pred.shape)))
             print("lbl_true: %s" % str(lbl_true.shape))
+            with open('shape.txt', 'a') as f:
+                f.write("lbl_pred: %s" % str(lbl_pred.shape))
+                f.write("lbl_true: %s" % str(lbl_true.shape))
             for img, lt, lp in zip(imgs, lbl_true, lbl_pred):
                 img, lt = self.val_loader.dataset.untransform(img, lt)
                 print("img: %s" % str(img.shape))
                 print("lt: %s" % str(lt.shape))
+                with open('shape.txt', 'a') as f:
+                    f.write("img: %s" % str(img.shape))
+                    f.write("img: %s" % str(img.shape))
                 label_trues.append(lt)
                 label_preds.append(lp)
                 if len(visualizations) < 9:
@@ -187,6 +193,7 @@ class Trainer(object):
                 continue  # for resuming
             self.iteration = iteration
             print("line 187")
+            # 一个batch为一个iteration 共10000个iter 每100iters验证一次
             if self.iteration % self.interval_validate == 0:
                 self.validate()
 

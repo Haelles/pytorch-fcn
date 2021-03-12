@@ -4,12 +4,14 @@ import argparse
 import datetime
 import os
 import os.path as osp
+import subprocess
+from shlex import shlex
 
 import torch
 import yaml
 
-from train_fcn32s import get_parameters
-from train_fcn32s import git_hash
+
+
 import sys
 sys.path.append("../../torchfcn/datasets/")
 sys.path.append("../../torchfcn/")
@@ -18,6 +20,39 @@ from DeepFashion import DeepFashionDataset
 
 
 here = osp.dirname(osp.abspath(__file__))
+
+
+def git_hash():
+    cmd = 'git log -n 1 --pretty="%h"'
+    ret = subprocess.check_output(shlex.split(cmd)).strip()
+    if isinstance(ret, bytes):
+        ret = ret.decode()
+    return ret
+
+
+def get_parameters(model, bias=False):
+    import torch.nn as nn
+    modules_skipped = (
+        nn.ReLU,
+        nn.MaxPool2d,
+        nn.Dropout2d,
+        nn.Sequential,
+        torchfcn.models.FCN8s,
+    )
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d):  # 实际上只抛出了Conv2d的bias/weight
+            if bias:
+                yield m.bias
+            else:
+                yield m.weight
+        elif isinstance(m, nn.ConvTranspose2d):
+            # weight is frozen because it is just a bilinear upsampling
+            if bias:
+                assert m.bias is None
+        elif isinstance(m, modules_skipped):
+            continue
+        else:
+            raise ValueError('Unexpected module: %s' % str(m))
 
 
 def main():
@@ -29,7 +64,7 @@ def main():
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
     parser.add_argument(
-        '--max-iteration', type=int, default=100000, help='max iteration'
+        '--max-iteration', type=int, default=10000, help='max iteration'
     )
     parser.add_argument(
         '--lr', type=float, default=0.001, help='learning rate',
@@ -118,7 +153,7 @@ def main():
         val_loader=val_loader,
         out=args.out,
         max_iter=args.max_iteration,
-        interval_validate=4000,
+        interval_validate=100,
     )
     trainer.epoch = start_epoch
     trainer.iteration = start_iteration
