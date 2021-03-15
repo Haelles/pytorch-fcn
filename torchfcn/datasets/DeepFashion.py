@@ -34,7 +34,7 @@ class DeepFashionDataset(data.Dataset):
         'sofa',
         'train',
     ])
-    mean_bgr = np.array([255, 255, 255])
+    mean_bgr = np.array([187.4646117, 190.3556895, 198.6592035])
 
     def __init__(self, root, split='train', transform=False):
         self.root = root
@@ -82,10 +82,10 @@ class DeepFashionDataset(data.Dataset):
 
     def untransform(self, img, lbl):
         img = img.numpy()
-        img = img.transpose(1, 2, 0)
+        img = img.transpose(1, 2, 0)  # CHW -> HWC
         img += self.mean_bgr
         img = img.astype(np.uint8)
-        img = img[:, :, ::-1]
+        img = img[:, :, ::-1]  # RGB <- BGR
         lbl = lbl.numpy()
         return img, lbl
 

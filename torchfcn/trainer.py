@@ -136,9 +136,10 @@ class Trainer(object):
                 label_trues.append(lt)
                 label_preds.append(lp)
                 if len(visualizations) < 9:
+                    # 一次只加入一张图片
                     viz = fcn.utils.visualize_segmentation(
                         lbl_pred=lp, lbl_true=lt, img=img, n_class=n_class)
-                    visualizations.append(viz)
+                    visualizations.append(viz)  # 添加了2 * 3共6张图片
         metrics = torchfcn.utils.label_accuracy_score(
             label_trues, label_preds, n_class)
 
