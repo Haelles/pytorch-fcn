@@ -4,29 +4,68 @@ import argparse
 import datetime
 import os
 import os.path as osp
+import subprocess
+from shlex import shlex
 
 import torch
 import yaml
 
-import torchfcn
 
-from train_fcn32s import get_parameters
-from train_fcn32s import git_hash
+
+import sys
+sys.path.append("../../torchfcn/datasets/")
+sys.path.append("../../torchfcn/")
+import torchfcn
+from DeepFashion import DeepFashionDataset
 
 
 here = osp.dirname(osp.abspath(__file__))
+
+
+
+def git_hash():
+    cmd = 'git log -n 1 --pretty="%h"'
+    ret = subprocess.check_output(shlex.split(cmd)).strip()
+    if isinstance(ret, bytes):
+        ret = ret.decode()
+    return ret
+
+
+def get_parameters(model, bias=False):
+    import torch.nn as nn
+    modules_skipped = (
+        nn.ReLU,
+        nn.MaxPool2d,
+        nn.Dropout2d,
+        nn.Sequential,
+        torchfcn.models.FCN8s,
+    )
+    for m in model.modules():
+        if isinstance(m, nn.Conv2d):  # 实际上只抛出了Conv2d的bias/weight
+            if bias:
+                yield m.bias
+            else:
+                yield m.weight
+        elif isinstance(m, nn.ConvTranspose2d):
+            # weight is frozen because it is just a bilinear upsampling
+            if bias:
+                assert m.bias is None
+        elif isinstance(m, modules_skipped):
+            continue
+        else:
+            raise ValueError('Unexpected module: %s' % str(m))
 
 
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument('-g', '--gpu', type=int, required=True, help='gpu id')
+    parser.add_argument('-g', '--gpu', default='0', type=int, required=True, help='gpu id')
     parser.add_argument('--resume', help='checkpoint path')
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
     parser.add_argument(
-        '--max-iteration', type=int, default=100000, help='max iteration'
+        '--max-iteration', type=int, default=10000, help='max iteration'
     )
     parser.add_argument(
         '--lr', type=float, default=1.0e-10, help='learning rate',
@@ -58,19 +97,19 @@ def main():
 
     # 1. dataset
 
-    root = osp.expanduser('~/data/datasets')
+    root = osp.expanduser('~/data/datasets/dp/')
     kwargs = {'num_workers': 4, 'pin_memory': True} if cuda else {}
     train_loader = torch.utils.data.DataLoader(
-        torchfcn.datasets.SBDClassSeg(root, split='train', transform=True),
+        DeepFashionDataset(root, split='train', transform=True),
         batch_size=1, shuffle=True, **kwargs)
     val_loader = torch.utils.data.DataLoader(
-        torchfcn.datasets.VOC2011ClassSeg(
-            root, split='seg11valid', transform=True),
+        DeepFashionDataset(
+            root, split='val', transform=True),
         batch_size=1, shuffle=False, **kwargs)
 
     # 2. model
 
-    model = torchfcn.models.FCN8sAtOnce(n_class=21)
+    model = torchfcn.models.FCN8sAtOnce(n_class=20)
     start_epoch = 0
     start_iteration = 0
     if args.resume:
@@ -106,7 +145,7 @@ def main():
         val_loader=val_loader,
         out=args.out,
         max_iter=args.max_iteration,
-        interval_validate=4000,
+        interval_validate=100,
     )
     trainer.epoch = start_epoch
     trainer.iteration = start_iteration

@@ -104,7 +104,7 @@ class Trainer(object):
         #         desc='Valid iteration=%d' % self.iteration, ncols=80,
         #         leave=False):
         for batch_idx, (data, target) in enumerate(self.val_loader):
-            print("line 107")
+            # print("line 107")
             if self.cuda:
                 data, target = data.cuda(), target.cuda()
 
@@ -121,18 +121,18 @@ class Trainer(object):
             imgs = data.data.cpu()
             lbl_pred = score.data.max(1)[1].cpu().numpy()[:, :, :]
             lbl_true = target.data.cpu()
-            print("lbl_pred: %s" % (str(lbl_pred.shape)))
-            print("lbl_true: %s" % str(lbl_true.shape))
-            with open('shape.txt', 'a') as f:
-                f.write("lbl_pred: %s" % str(lbl_pred.shape))
-                f.write("lbl_true: %s" % str(lbl_true.shape))
+            # print("lbl_pred: %s" % (str(lbl_pred.shape)))
+            # print("lbl_true: %s" % str(lbl_true.shape))
+            # with open('shape.txt', 'a') as f:
+            #     f.write("lbl_pred: %s" % str(lbl_pred.shape))
+            #     f.write("lbl_true: %s" % str(lbl_true.shape))
             for img, lt, lp in zip(imgs, lbl_true, lbl_pred):
                 img, lt = self.val_loader.dataset.untransform(img, lt)
-                print("img: %s" % str(img.shape))
-                print("lt: %s" % str(lt.shape))
-                with open('shape.txt', 'a') as f:
-                    f.write("img: %s" % str(img.shape))
-                    f.write("img: %s" % str(img.shape))
+                # print("img: %s" % str(img.shape))
+                # print("lt: %s" % str(lt.shape))
+                # with open('shape.txt', 'a') as f:
+                #     f.write("img: %s" % str(img.shape))
+                #     f.write("img: %s" % str(img.shape))
                 label_trues.append(lt)
                 label_preds.append(lp)
                 if len(visualizations) < 9:
@@ -183,7 +183,7 @@ class Trainer(object):
         self.model.train()  # model.training设置为True
 
         n_class = 20
-        print("line 178")
+        # print("line 178")
         # for batch_idx, (data, target) in tqdm.tqdm(
         #         enumerate(self.train_loader), total=len(self.train_loader),
         #         desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
@@ -193,7 +193,7 @@ class Trainer(object):
             if self.iteration != 0 and (iteration - 1) != self.iteration:
                 continue  # for resuming
             self.iteration = iteration
-            print("line 187")
+            # print("line 187")
             # 一个batch为一个iteration 共10000个iter 每100iters验证一次
             if self.iteration % self.interval_validate == 0:
                 self.validate()
@@ -204,7 +204,7 @@ class Trainer(object):
                 data, target = data.cuda(), target.cuda()
             self.optim.zero_grad()
             score = self.model(data)
-            print(score.shape)
+            # print(score.shape)
 
             loss = cross_entropy2d(score, target,
                                    size_average=self.size_average)

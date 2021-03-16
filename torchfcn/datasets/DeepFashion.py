@@ -12,28 +12,7 @@ from torch.utils import data
 
 class DeepFashionDataset(data.Dataset):
 
-    class_names = np.array([
-        'background',
-        'aeroplane',
-        'bicycle',
-        'bird',
-        'boat',
-        'bottle',
-        'bus',
-        'car',
-        'cat',
-        'chair',
-        'cow',
-        'diningtable',
-        'dog',
-        'horse',
-        'motorbike',
-        'person',
-        'potted plant',
-        'sheep',
-        'sofa',
-        'train',
-    ])
+    class_names = None
     mean_bgr = np.array([187.4646117, 190.3556895, 198.6592035])
 
     def __init__(self, root, split='train', transform=False):
@@ -41,7 +20,7 @@ class DeepFashionDataset(data.Dataset):
         self.split = split
         self._transform = transform  # train, val都为True
 
-        lines = open('/home/featurize/data/pytorch-fcn/torchfcn/datasets/dp_train_val.txt').readlines()
+        lines = open('../../torchfcn/datasets/dp_train_val.txt').readlines()
         self.files = collections.defaultdict(list)
         for l in lines:
             sub_path, tag = l.split()[0], l.split()[-1]
