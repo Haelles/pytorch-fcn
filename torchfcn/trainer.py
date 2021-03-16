@@ -237,7 +237,7 @@ class Trainer(object):
                 break
 
     def train(self):
-        # 10000 / (4000 / 8) = 20
+        # 100000 / (4000 / 1) = 25
         max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader)))
         # for epoch in tqdm.trange(self.epoch, max_epoch,
         #                          desc='Train', ncols=80):

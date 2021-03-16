@@ -5,7 +5,8 @@ import datetime
 import os
 import os.path as osp
 import subprocess
-from shlex import shlex
+import shlex
+import subprocess
 
 import torch
 import yaml
@@ -65,7 +66,7 @@ def main():
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
     parser.add_argument(
-        '--max-iteration', type=int, default=10000, help='max iteration'
+        '--max-iteration', type=int, default=100000, help='max iteration'
     )
     parser.add_argument(
         '--lr', type=float, default=1.0e-10, help='learning rate',
@@ -145,7 +146,7 @@ def main():
         val_loader=val_loader,
         out=args.out,
         max_iter=args.max_iteration,
-        interval_validate=100,
+        interval_validate=2000,
     )
     trainer.epoch = start_epoch
     trainer.iteration = start_iteration

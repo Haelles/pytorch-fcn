@@ -4,8 +4,8 @@ import argparse
 import datetime
 import os
 import os.path as osp
+import shlex
 import subprocess
-from shlex import shlex
 
 import torch
 import yaml
